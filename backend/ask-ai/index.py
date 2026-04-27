@@ -3,9 +3,8 @@ import os
 import urllib.request
 
 
-
 def handler(event: dict, context) -> dict:
-    """Обработчик чата DAV AI — принимает вопрос пользователя и возвращает ответ от GPT."""
+    """Обработчик чата DAV AI — принимает вопрос пользователя и возвращает ответ от Groq."""
 
     if event.get("httpMethod") == "OPTIONS":
         return {
@@ -29,10 +28,10 @@ def handler(event: dict, context) -> dict:
             "body": json.dumps({"error": "Вопрос не может быть пустым"}),
         }
 
-    api_key = os.environ.get("OPENAI_API_KEY", "")
+    api_key = os.environ.get("GROQ_API_KEY", "")
 
     payload = json.dumps({
-        "model": "gpt-4o-mini",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {
                 "role": "system",
@@ -49,7 +48,7 @@ def handler(event: dict, context) -> dict:
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions",
         data=payload,
         headers={
             "Content-Type": "application/json",
