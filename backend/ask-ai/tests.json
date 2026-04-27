@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {
+      "name": "Ask AI question",
+      "method": "POST",
+      "path": "/",
+      "body": {"question": "Что такое DAV AI?"},
+      "expectedStatus": 200,
+      "expectedBody": {"answer": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

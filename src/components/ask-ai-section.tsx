@@ -2,18 +2,12 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Icon from "@/components/ui/icon"
 
+const ASK_AI_URL = "https://functions.poehali.dev/d6affe2d-3407-4d14-aa9e-9d92d1138392"
+
 interface Message {
   role: "user" | "ai"
   text: string
 }
-
-const PLACEHOLDER_ANSWERS = [
-  "DAV AI анализирует ваш запрос и предоставляет точные, персонализированные ответы в режиме реального времени.",
-  "Наша система обучена на миллиардах данных, чтобы давать вам максимально релевантные результаты.",
-  "DAV AI постоянно обучается и совершенствуется, чтобы лучше понимать ваши потребности.",
-  "Это отличный вопрос! DAV AI готов помочь вам достичь ваших целей с помощью передовых алгоритмов.",
-  "DAV AI интегрируется с вашими инструментами и процессами, делая работу проще и эффективнее.",
-]
 
 export function AskAISection() {
   const [messages, setMessages] = useState<Message[]>([
@@ -27,17 +21,30 @@ export function AskAISection() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const text = input.trim()
     if (!text || loading) return
     setInput("")
     setMessages((prev) => [...prev, { role: "user", text }])
     setLoading(true)
-    setTimeout(() => {
-      const answer = PLACEHOLDER_ANSWERS[Math.floor(Math.random() * PLACEHOLDER_ANSWERS.length)]
+
+    try {
+      const res = await fetch(ASK_AI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text }),
+      })
+      const data = await res.json()
+      const answer = data.answer || "Не удалось получить ответ. Попробуйте ещё раз."
       setMessages((prev) => [...prev, { role: "ai", text: answer }])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Произошла ошибка. Пожалуйста, попробуйте позже." },
+      ])
+    } finally {
       setLoading(false)
-    }, 1200)
+    }
   }
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -58,7 +65,7 @@ export function AskAISection() {
 
         <div className="bg-white/5 border border-red-500/20 rounded-2xl overflow-hidden">
           {/* Chat messages */}
-          <div className="h-80 overflow-y-auto p-6 space-y-4 scrollbar-thin">
+          <div className="h-80 overflow-y-auto p-6 space-y-4">
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -66,9 +73,7 @@ export function AskAISection() {
               >
                 <div
                   className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    msg.role === "ai"
-                      ? "bg-red-500 text-white"
-                      : "bg-white/10 text-white"
+                    msg.role === "ai" ? "bg-red-500 text-white" : "bg-white/10 text-white"
                   }`}
                 >
                   {msg.role === "ai" ? "AI" : "Вы"}
