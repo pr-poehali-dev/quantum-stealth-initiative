@@ -3,6 +3,7 @@ import os
 import urllib.request
 
 
+
 def handler(event: dict, context) -> dict:
     """Обработчик чата DAV AI — принимает вопрос пользователя и возвращает ответ от GPT."""
 
