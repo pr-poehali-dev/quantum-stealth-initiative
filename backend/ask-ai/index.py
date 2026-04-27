@@ -1,6 +1,7 @@
 import json
 import os
 import urllib.request
+import urllib.error
 
 
 def handler(event: dict, context) -> dict:
@@ -57,13 +58,19 @@ def handler(event: dict, context) -> dict:
         method="POST",
     )
 
-    with urllib.request.urlopen(req) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-
-    answer = result["choices"][0]["message"]["content"]
-
-    return {
-        "statusCode": 200,
-        "headers": {"Access-Control-Allow-Origin": "*"},
-        "body": json.dumps({"answer": answer}),
-    }
+    try:
+        with urllib.request.urlopen(req) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        answer = result["choices"][0]["message"]["content"]
+        return {
+            "statusCode": 200,
+            "headers": {"Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"answer": answer}),
+        }
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8")
+        return {
+            "statusCode": 200,
+            "headers": {"Access-Control-Allow-Origin": "*"},
+            "body": json.dumps({"answer": f"[DEBUG] HTTP {e.code}: {error_body}"}),
+        }
